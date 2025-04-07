@@ -25,6 +25,7 @@ public class GeminiService {
         this.webClient = webClient;
     }
 
+    // Denne metode returnerer en Mono<String> som er en container med promise om en String som kommer senere
     public Mono<String> generateText(String prompt) {
         String endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
 
@@ -35,13 +36,17 @@ public class GeminiService {
         );
 
         // Selve HTTP-kaldet til Gemini: sender en post
-        // Returnerer svaret som Mono<map> som vi så mapper til en String
+        // Returnerer først JSON som vi så konverteres til en Mono<Map> og så til en String
         return webClient.post()
                 .uri(endpoint)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .bodyValue(requestBody)
                 .retrieve()
+
+                // konverterer JSON-respons til en Mono<Map>
                 .bodyToMono(Map.class)
+
+                // konvererer Mono<Map> til en String
                 .map(response -> {
                     try {
                         List<Map> candidates = (List<Map>) response.get("candidates");

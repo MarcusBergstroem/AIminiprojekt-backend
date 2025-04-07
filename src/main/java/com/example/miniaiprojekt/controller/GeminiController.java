@@ -17,6 +17,11 @@ public class GeminiController {
         this.geminiService = geminiService;
     }
 
+    @GetMapping("/")
+    public String index() {
+        return "/index.html";
+    }
+
     @GetMapping("/generate")
     // Requestparam er den inputtekst som brugeren har skrevet i API-kaldet
     public ResponseEntity<String> generate(@RequestParam String prompt) {
