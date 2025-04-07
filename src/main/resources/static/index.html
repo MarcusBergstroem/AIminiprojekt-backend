@@ -38,48 +38,7 @@
             font-size: 1rem;
             cursor: pointer;
         }
-
-        /* Styling for markdown konverteret HTML */
-        .gemini-message strong {
-            font-weight: bold;
-        }
-
-        .gemini-message em {
-            font-style: italic;
-        }
-
-        .gemini-message ul {
-            list-style-type: disc;
-            padding-left: 20px;
-        }
-
-        .gemini-message ol {
-            list-style-type: decimal;
-            padding-left: 20px;
-        }
-
-        .gemini-message li {
-            margin-bottom: 5px;
-        }
-
-        .gemini-message h1, .gemini-message h2, .gemini-message h3 {
-            font-family: Arial, sans-serif;
-            margin: 10px 0;
-        }
-
-        .gemini-message p {
-            margin-bottom: 10px;
-        }
-
-        /* For at sikre at lange linjer ikke går ud af boksen */
-        .gemini-message {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
     </style>
-
-    <!-- Inkluder marked.js fra CDN -->
-    <script src="/marked.min.js"></script>
 </head>
 <body>
 
@@ -91,20 +50,6 @@
 </div>
 
 <script>
-
-    window.addEventListener('load', function() {
-        // Tjek om marked er tilgængelig
-        console.log("marked function available:", typeof marked === "function");
-
-        if (typeof marked !== 'function') {
-            console.error('Marked is not available.');
-        }
-    });
-
-
-    // Test om marked er tilgængelig
-    console.log("marked function available:", typeof marked === "function");
-
     const sendButton = document.getElementById("sendButton");
     const inputField = document.getElementById("inputField");
     const messages = document.getElementById("messages");
@@ -118,10 +63,8 @@
             fetch('http://localhost:8080/api/gemini/generate?prompt=' + encodeURIComponent(userInput))
                 .then(response => response.text()) // Brug text() til at hente den rå tekst (Mono<String>)
                 .then(geminiResponse => {
-                    // Kontroller om Gemini svar er Markdown og konverter det
-                    const htmlResponse = marked(geminiResponse); // Brug marked.js til at konvertere markdown til HTML
                     // Vis Gemini's svar i chatten
-                    addMessage(htmlResponse, "gemini-message"); // Nu viser vi HTML
+                    addMessage("Gemini: " + geminiResponse, "gemini-message");
                 })
                 .catch(error => {
                     addMessage("Fejl: " + error.message, "gemini-message");
@@ -132,24 +75,17 @@
         }
     });
 
-
     // Funktion til at tilføje en besked til chatvinduet
     function addMessage(message, className) {
         const messageElement = document.createElement("div");
         messageElement.classList.add("message", className);
-
-        // Hvis beskeden er en Gemini-besked, sæt innerHTML i stedet for textContent
-        if (className === "gemini-message") {
-            messageElement.innerHTML = message; // Brug innerHTML for at vise HTML-indhold (Markdown konverteres til HTML)
-        } else {
-            messageElement.textContent = message; // Brug textContent for at vise almindelig tekst
-        }
-
+        messageElement.textContent = message;
         messages.appendChild(messageElement);
 
         // Scroll ned til den nyeste besked
         messages.scrollTop = messages.scrollHeight;
     }
+
 </script>
 
 </body>
