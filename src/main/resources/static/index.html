@@ -49,6 +49,7 @@
     <button id="sendButton">Send</button>
 </div>
 
+<script src="marked.min.js"></script>
 <script>
 
     const sendButton = document.getElementById("sendButton");
@@ -65,7 +66,7 @@
                 .then(response => response.text()) // Brug text() til at hente den rå tekst (Mono<String>)
                 .then(geminiResponse => {
                     // Vis Gemini's svar i chatten
-                    addMessage("Gemini: " + geminiResponse, "gemini-message");
+                    addMessage("Gemini: " + marked.parse(geminiResponse), "gemini-message");
                 })
                 .catch(error => {
                     addMessage("Fejl: " + error.message, "gemini-message");
@@ -80,7 +81,7 @@
     function addMessage(message, className) {
         const messageElement = document.createElement("div");
         messageElement.classList.add("message", className);
-        messageElement.textContent = message;
+        messageElement.innerHTML = message;
         messages.appendChild(messageElement);
 
         // Scroll ned til den nyeste besked
