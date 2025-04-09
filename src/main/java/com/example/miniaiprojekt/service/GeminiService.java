@@ -26,21 +26,39 @@ public class GeminiService {
         this.webClient = webClient;
     }
 
-    public Mono<String> generateText(String prompt) {
+    // Vi opretter en arraylist som indeholder maps af key (String) og value (objekter) som er samtalen.
+    private final List<Map<String, Object>> conversation = new ArrayList<>();
+
+    // Indledningsvis er der tale om første besked i samtalen
+    private boolean isFirstMessage = true;
+
+    // Hovedmetoden som tager imod brugerens besked og kalder API'en
+    public Mono<String> generateText(String userPrompt) {
         String endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
 
-        // SYSTEMPROMPT – fast introduktion til modellen
-        String systemPrompt = "Du er en hjælpsom og vidende bogassistent. Du anbefaler bøger ud fra brugerens interesser, genrer og behov. Giv altid mindst 3 anbefalinger og angiv hvor lang bogen er og hvornår den er fra. Giv desuden et link til bogen hvor man kan købe den";
+        // Kun første gang bliver robotten "opdraget" til at opføre sig på en bestemt måde
+        // Bemærk at det er med role-user key-value fordi gratis Gemini ikke understøtter role-system
+        // Beskeden tilføjes til vores samtale-array
+        if (isFirstMessage) {
+            String systemPrompt = "Du er en hjælpsom og vidende bogassistent. Du anbefaler bøger ud fra mine interesser, genrer og behov. Giv mig herefter altid 3 anbefalinger, angiv hvor lang bogen er og hvornår den er fra.";
+            conversation.add(Map.of(
+                    "role", "user",
+                    "parts", List.of(Map.of("text", systemPrompt))
+            ));
+            isFirstMessage = false;
+        }
 
-        Map<String, Object> requestBody = Map.of(
-                "contents", List.of(
-                        Map.of(
-                                "role", "user",
-                                "parts", List.of(Map.of("text", systemPrompt + prompt))
-                        )
-                )
-        );
+        // De efterfølgende beskeder er kun brugerens inputbeskeder (uden systemPrompt) og gemmes også i arraylisten
+        // Her er role: user
+        conversation.add(Map.of(
+                "role", "user",
+                "parts", List.of(Map.of("text", userPrompt))
+        ));
 
+        // Her er den Map af key-value pairs som sendes til AI'en (fra vores arraylist)
+        Map<String, Object> requestBody = Map.of("contents", conversation);
+
+        // Svarene fra API'en kommer her
         return webClient.post()
                 .uri(endpoint)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -49,51 +67,19 @@ public class GeminiService {
                 .bodyToMono(GeminiResponseDTO.class)
                 .map(response -> {
                     try {
-                        return response.getCandidates().get(0).getContent().getParts().get(0).getText();
+                        String reply = response.getCandidates().get(0).getContent().getParts().get(0).getText();
+
+                        // API'ens svar bliver også gemt i vores samtale, men dens key-value par er role: model
+                        conversation.add(Map.of(
+                                "role", "model",
+                                "parts", List.of(Map.of("text", reply))
+                        ));
+
+                        return reply;
                     } catch (Exception e) {
                         return "Fejl ved parsing af svar: " + e.getMessage();
                     }
                 });
     }
-
-
-
-    /* Gammel kode (før DTO) er herunder
-
-    // Denne metode returnerer en Mono<String> som er en container med promise om en String som kommer senere
-    public Mono<String> generateText(String prompt) {
-        String endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
-
-        Map<String, Object> requestBody = Map.of(
-                "contents", List.of(
-                        Map.of("parts", List.of(Map.of("text", prompt)))
-                )
-        );
-
-        // Selve HTTP-kaldet til Gemini: sender en post
-        // Returnerer først JSON som vi så konverteres til en Mono<Map> og så til en String
-        return webClient.post()
-                .uri(endpoint)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .bodyValue(requestBody)
-                .retrieve()
-
-                // konverterer JSON-respons til en Mono<Map>
-                .bodyToMono(Map.class)
-
-                // konvererer Mono<Map> til en String
-                .map(response -> {
-                    try {
-                        List<Map> candidates = (List<Map>) response.get("candidates");
-                        Map content = (Map) candidates.get(0).get("content");
-                        List<Map> parts = (List<Map>) content.get("parts");
-                        return (String) parts.get(0).get("text");
-                    } catch (Exception e) {
-                        return "Fejl ved parsing af svar: " + e.getMessage();
-                    }
-                });
-    }
-
-     */
 }
 
