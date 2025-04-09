@@ -29,9 +29,15 @@ public class GeminiService {
     public Mono<String> generateText(String prompt) {
         String endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
 
+        // SYSTEMPROMPT – fast introduktion til modellen
+        String systemPrompt = "Du er en hjælpsom og vidende bogassistent. Du anbefaler bøger ud fra brugerens interesser, genrer og behov. Giv altid mindst 3 anbefalinger og angiv hvor lang bogen er og hvornår den er fra. Giv desuden et link til bogen hvor man kan købe den";
+
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
-                        Map.of("parts", List.of(Map.of("text", prompt)))
+                        Map.of(
+                                "role", "user",
+                                "parts", List.of(Map.of("text", systemPrompt + prompt))
+                        )
                 )
         );
 
@@ -40,16 +46,16 @@ public class GeminiService {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .bodyValue(requestBody)
                 .retrieve()
-                .bodyToMono(GeminiResponseDTO.class) // Her bruger vi DTO'et i stedet for Map
+                .bodyToMono(GeminiResponseDTO.class)
                 .map(response -> {
                     try {
-                        // Hent teksten fra Gemini's svar via DTO'et
                         return response.getCandidates().get(0).getContent().getParts().get(0).getText();
                     } catch (Exception e) {
                         return "Fejl ved parsing af svar: " + e.getMessage();
                     }
                 });
     }
+
 
 
     /* Gammel kode (før DTO) er herunder
