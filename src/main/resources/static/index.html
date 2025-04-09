@@ -3,51 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Chat Test</title>
-    <style>
-        /* Enkel styling til chat */
-        #chatBox {
-            width: 80%;
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-        }
-        #messages {
-            height: 300px;
-            overflow-y: scroll;
-            margin-bottom: 20px;
-        }
-        .message {
-            margin-bottom: 15px;
-        }
-        .user-message {
-            font-weight: bold;
-        }
-        .gemini-message {
-            color: #007BFF;
-        }
-        #inputField {
-            width: 100%;
-            padding: 10px;
-            font-size: 1rem;
-        }
-        #sendButton {
-            padding: 10px 20px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-    </style>
+    <title>Biblioteks-GPT</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="chatBox">
+    <h1> Boganbefaler-GPT</h1>
     <div id="messages"></div>
-
-    <input type="text" id="inputField" placeholder="Skriv en besked..." />
+    <input type="text" id="inputField" placeholder="Skriv din besked...">
     <button id="sendButton">Send</button>
 </div>
+
 
 <script src="marked.min.js"></script>
 <script>
