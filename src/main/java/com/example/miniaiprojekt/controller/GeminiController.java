@@ -22,6 +22,11 @@ public class GeminiController {
         return "/index.html";
     }
 
+    @GetMapping("/bookhelper")
+    public String bookkeeper() {
+        return "/bookhelper.html";
+    }
+
     @GetMapping("/generate")
     // Requestparam er den inputtekst som brugeren har skrevet i API-kaldet
     public ResponseEntity<String> generate(@RequestParam String prompt) {

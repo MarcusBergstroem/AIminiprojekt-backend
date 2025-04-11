@@ -2,84 +2,169 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biblioteks-GPT</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Home</title>
+    <script>
+        const port = 8080
+        //const host = "https://sslsec.azurewebsites.net"
+        const host = "http://localhost:" + port
+        let div = ''  // let: can be changed, but not re-declared. Hoisting behavior is Reference error
+                      // var: can be changed AND re-declared. Hoisting behavior is 'undefined'
+                      // const: can not be changed or re-declared. Hoisting behavior is Reference error
+        document.addEventListener("DOMContentLoaded", function() { // wait for DOM to load
+            document.getElementById('signupForm').addEventListener('submit', signup);
+            document.getElementById('loginForm').addEventListener('submit', login);
+            document.getElementById('getSecretForm').addEventListener('submit', getSecret)
+            document.getElementById('deleteUserForm').addEventListener('submit', deleteUser)
+            document.getElementById('logoutForm').addEventListener('submit', logout)
+            div = document.getElementById('container')
+        });
+
+
+        function myFetchWithToken(endpoint, method, payload = null) {
+            const url = `${host}/${endpoint}`;
+            // Set up the options for the fetch call
+            const options = {
+                method: method,
+                credentials: 'include',
+                body: payload,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            return fetch(url, options)
+                .then(async (res) => {
+                    // Try to determine the response type by checking the content-type header
+                    const contentType = res.headers.get('content-type');
+                    let data;
+
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await res.json();
+                    } else {
+                        data = await res.text();
+                    }
+
+                    // If the response status is not OK, throw an error so it can be caught
+                    if (!res.ok) {
+                        // Throw the error message to be caught in a .catch() by the caller
+                        throw new Error((data && data.message) || `Request failed with status ${res.status}`);
+                    }
+
+                    return data;
+                });
+        }
+
+        function printThis(mydiv, txt, color){
+            mydiv.insertAdjacentHTML(
+                'beforeend',
+                `<span style="background-color: ${color}">${txt}</code>`,
+            );
+        }
+
+
+        function signup(event) {
+            event.preventDefault()
+            const nameField = document.getElementById("nameField").value;
+            const passwordFieldSignup = document.getElementById("passwordFieldSignup").value;
+            let payload = {
+                username: nameField,
+                password: passwordFieldSignup
+            };
+            payload = JSON.stringify(payload)
+            myFetchWithToken("signup", "POST", payload)
+                .then((data) => {
+                    printThis(div, JSON.stringify(data), "green")
+                }).catch(error =>{
+                printThis(div, JSON.stringify(error.message), "red")
+            })
+        }
+
+        function login(event) {
+            event.preventDefault();
+            const usernameField = document.getElementById("usernameField").value;
+            const passwordField = document.getElementById("passwordField").value;
+            let payload = {
+                username: usernameField,
+                password: passwordField
+            };
+            payload = JSON.stringify(payload);
+            myFetchWithToken("login", "POST", payload)
+                .then((data) => {
+                    printThis(div, JSON.stringify(data), "green")
+                }).catch(error =>{
+                printThis(div, JSON.stringify(error.message), "red")
+            })
+        }
+
+
+        function getSecret(event) {
+            event.preventDefault();
+            const paramField = document.getElementById("paramField").value;
+            const payload = { paramField: paramField };
+            myFetchWithToken("getSecret", "POST", payload)
+                .then((data) => {
+                    printThis(div, JSON.stringify(data), "green")
+                }).catch(error =>{
+                printThis(div, JSON.stringify(error.message), "red")
+            })
+        }
+
+        function deleteUser(event) {
+            event.preventDefault()
+
+            const usernameDeleteField = document.getElementById("usernameDeleteField").value;
+            let payload = {
+                username: usernameDeleteField,
+                password: "password"  // dummy password here
+            };
+            payload = JSON.stringify(payload)
+            myFetchWithToken("deleteUser", "DELETE", payload)
+                .then((data) => {
+                    printThis(div, JSON.stringify(data), "green")
+                }).catch(error =>{
+                printThis(div, JSON.stringify(error.message), "red")
+            })
+        }
+
+
+        function logout(event) {
+            event.preventDefault();
+            myFetchWithToken("logout2", "POST", null)
+                .then((data) => {
+                    printThis(div, JSON.stringify(data), "green")
+                }).catch(error =>{
+                printThis(div, JSON.stringify(error.message), "red")
+            })
+        }
+
+
+    </script>
 </head>
 <body>
+<form id="signupForm">
+    <input type="text" value="Ole" id="nameField">
+    <input type="text" value="123" id="passwordFieldSignup">
+    <input type="submit" value="Sign up">
+</form>
+<br/>
+<form id="loginForm">
+    <input type="text" value="Ole" id="usernameField">
+    <input type="text" value="123" id="passwordField">
+    <input type="submit" value="Log in">
+</form>
 
-<div id="chatBox">
-    <h1> Boganbefaler-GPT</h1>
-    <div id="messages"></div>
-    <div id="typingIndicator" class="typing-indicator" style="display: none;">
-        <span></span><span></span><span></span>
-    </div>
-    <!-- javascript:void(-1) Betyder at siden ikke reloader, når vi trykker enter for at sende beskeden-->
-    <form action="javascript:void(-1)">
-        <input type="text" id="inputField" placeholder="Skriv din besked...">
-        <button id="sendButton" type="submit">Send</button>
-    </form>
-</div>
+<form id="deleteUserForm">
+    <input type="text" placeholder="Username" id="usernameDeleteField">
+    <input type="submit" value="Delete user">
+</form>
+<form id="getSecretForm">
+    <input type="text" placeholder="some query" id="paramField">
+    <input type="submit" value="Get secret">
+</form>
 
-
-<script src="marked.min.js"></script>
-<script>
-
-    const sendButton = document.getElementById("sendButton");
-    const inputField = document.getElementById("inputField");
-    const messages = document.getElementById("messages");
-
-    //Vi sender en tom besked i starten, for at vi kan få Gemini til at svare os først, og hjælpe brugeren til at finde sin bog.
-    let geminiAnswersFirst = false;
-    if (!geminiAnswersFirst){
-        sendMessage("");
-        geminiAnswersFirst = true;
-    }
-
-    sendButton.addEventListener("click", function() {
-        const userInput = inputField.value;
-        if (userInput.trim()) {
-            addMessage("Du: " + userInput, "user-message");
-            sendMessage(userInput);
-            // Tøm inputfeltet
-            inputField.value = "";
-        }
-    });
-    // Funktion til at sende beskeder
-    function sendMessage(userInput) {
-        showTypingIndicator(true);
-        // Send input til Gemini API
-        fetch('http://localhost:8080/api/gemini/generate?prompt=' + encodeURIComponent(userInput))
-            .then(response => response.text()) // Brug text() til at hente den rå tekst (Mono<String>)
-            .then(geminiResponse => {
-                showTypingIndicator(false);
-                // Vis Gemini's svar i chatten
-                addMessage("Gemini: " + marked.parse(geminiResponse), "gemini-message");
-            })
-            .catch(error => {
-                showTypingIndicator(false);
-                addMessage("Fejl: " + error.message, "gemini-message");
-            });
-    }
-
-    // Funktion til at tilføje en besked til chatvinduet
-    function addMessage(message, className) {
-        const messageElement = document.createElement("div");
-        messageElement.classList.add("message", className);
-        messageElement.innerHTML = message;
-        messages.appendChild(messageElement);
-
-        // Scroll ned til den nyeste besked
-        messages.scrollTop = messages.scrollHeight;
-    }
-
-    //Viser 3 prikker når vi venter Gemini respons
-    function showTypingIndicator(show) {
-        const typingIndicator = document.getElementById("typingIndicator");
-        typingIndicator.style.display = show ? "flex" : "none";
-    }
-
-</script>
-
+<form id="logoutForm">
+    <input type="submit" value="Log Out">
+</form>
+<div id="container">Initial Text</div>
 </body>
 </html>

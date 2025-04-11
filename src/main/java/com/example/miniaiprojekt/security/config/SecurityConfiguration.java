@@ -38,7 +38,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow all OPTIONS requests
-                    .requestMatchers("/login", "/signup", "/hello").permitAll()
+                    .requestMatchers("/login", "/signup", "/hello", "/").permitAll()
                     .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))

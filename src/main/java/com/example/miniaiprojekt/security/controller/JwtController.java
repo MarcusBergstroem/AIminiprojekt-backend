@@ -130,7 +130,6 @@ public class JwtController {
         }
         return ResponseEntity.ok(map);
     }
-
     @GetMapping("/hello")
     public ResponseEntity<Map> getHello() {
         System.out.println("getHello is called");
@@ -138,5 +137,4 @@ public class JwtController {
         map.put("message","this is HELLO from server");
         return ResponseEntity.ok(map);
     }
-
 }
