@@ -27,6 +27,14 @@ h1{
     flex-direction: column;
     justify-content: space-between;
     padding: 30px 20px;
+
+    overflow: hidden; /* Skjul scrollbaren */
+    -ms-overflow-style: none; /* Skjul scrollbar i Internet Explorer */
+    scrollbar-width: none; /* Skjul scrollbar i Firefox */
+}
+
+.chatBox::-webkit-scrollbar {
+    display: none; /* Skjul scrollbar i Webkit-browsere (Chrome, Safari, Edge) */
 }
 
 

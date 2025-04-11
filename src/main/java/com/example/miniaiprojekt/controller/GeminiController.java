@@ -19,7 +19,7 @@ public class GeminiController {
 
     @GetMapping("/")
     public String index() {
-        return "/index.html";
+        return "Hej med dig";
     }
 
     @GetMapping("/bookhelper")
