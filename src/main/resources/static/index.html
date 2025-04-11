@@ -11,8 +11,14 @@
 <div id="chatBox">
     <h1> Boganbefaler-GPT</h1>
     <div id="messages"></div>
-    <input type="text" id="inputField" placeholder="Skriv din besked...">
-    <button id="sendButton">Send</button>
+    <div id="typingIndicator" class="typing-indicator" style="display: none;">
+        <span></span><span></span><span></span>
+    </div>
+    <!-- javascript:void(-1) Betyder at siden ikke reloader, når vi trykker enter for at sende beskeden-->
+    <form action="javascript:void(-1)">
+        <input type="text" id="inputField" placeholder="Skriv din besked...">
+        <button id="sendButton" type="submit">Send</button>
+    </form>
 </div>
 
 
@@ -23,26 +29,38 @@
     const inputField = document.getElementById("inputField");
     const messages = document.getElementById("messages");
 
+    //Vi sender en tom besked i starten, for at vi kan få Gemini til at svare os først, og hjælpe brugeren til at finde sin bog.
+    let geminiAnswersFirst = false;
+    if (!geminiAnswersFirst){
+        sendMessage("");
+        geminiAnswersFirst = true;
+    }
+
     sendButton.addEventListener("click", function() {
         const userInput = inputField.value;
         if (userInput.trim()) {
             addMessage("Du: " + userInput, "user-message");
-
-            // Send input til Gemini API
-            fetch('http://localhost:8080/api/gemini/generate?prompt=' + encodeURIComponent(userInput))
-                .then(response => response.text()) // Brug text() til at hente den rå tekst (Mono<String>)
-                .then(geminiResponse => {
-                    // Vis Gemini's svar i chatten
-                    addMessage("Gemini: " + marked.parse(geminiResponse), "gemini-message");
-                })
-                .catch(error => {
-                    addMessage("Fejl: " + error.message, "gemini-message");
-                });
-
+            sendMessage(userInput);
             // Tøm inputfeltet
             inputField.value = "";
         }
     });
+    // Funktion til at sende beskeder
+    function sendMessage(userInput) {
+        showTypingIndicator(true);
+        // Send input til Gemini API
+        fetch('http://localhost:8080/api/gemini/generate?prompt=' + encodeURIComponent(userInput))
+            .then(response => response.text()) // Brug text() til at hente den rå tekst (Mono<String>)
+            .then(geminiResponse => {
+                showTypingIndicator(false);
+                // Vis Gemini's svar i chatten
+                addMessage("Gemini: " + marked.parse(geminiResponse), "gemini-message");
+            })
+            .catch(error => {
+                showTypingIndicator(false);
+                addMessage("Fejl: " + error.message, "gemini-message");
+            });
+    }
 
     // Funktion til at tilføje en besked til chatvinduet
     function addMessage(message, className) {
@@ -53,6 +71,12 @@
 
         // Scroll ned til den nyeste besked
         messages.scrollTop = messages.scrollHeight;
+    }
+
+    //Viser 3 prikker når vi venter Gemini respons
+    function showTypingIndicator(show) {
+        const typingIndicator = document.getElementById("typingIndicator");
+        typingIndicator.style.display = show ? "flex" : "none";
     }
 
 </script>

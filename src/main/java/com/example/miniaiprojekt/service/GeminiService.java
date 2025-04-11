@@ -1,5 +1,6 @@
 package com.example.miniaiprojekt.service;
 
+import com.example.miniaiprojekt.dto.GeminiContentDTO;
 import com.example.miniaiprojekt.dto.GeminiResponseDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -27,7 +28,7 @@ public class GeminiService {
     }
 
     // Vi opretter en arraylist som indeholder maps af key (String) og value (objekter) som er samtalen.
-    private final List<Map<String, Object>> conversation = new ArrayList<>();
+    private final List<GeminiContentDTO> conversation = new ArrayList<>();
 
     // Indledningsvis er der tale om første besked i samtalen
     private boolean isFirstMessage = true;
@@ -41,18 +42,18 @@ public class GeminiService {
         // Beskeden tilføjes til vores samtale-array
         if (isFirstMessage) {
             String systemPrompt = "Du er en hjælpsom og vidende bogassistent. Du anbefaler bøger ud fra mine interesser, genrer og behov. Giv mig herefter altid 3 anbefalinger, angiv hvor lang bogen er og hvornår den er fra.";
-            conversation.add(Map.of(
-                    "role", "user",
-                    "parts", List.of(Map.of("text", systemPrompt))
+            conversation.add(new GeminiContentDTO(
+                    "user",
+                    List.of(new GeminiContentDTO.Part(systemPrompt))
             ));
             isFirstMessage = false;
         }
 
         // De efterfølgende beskeder er kun brugerens inputbeskeder (uden systemPrompt) og gemmes også i arraylisten
         // Her er role: user
-        conversation.add(Map.of(
-                "role", "user",
-                "parts", List.of(Map.of("text", userPrompt))
+        conversation.add(new GeminiContentDTO(
+                "user",
+                List.of(new GeminiContentDTO.Part(userPrompt))
         ));
 
         // Her er den Map af key-value pairs som sendes til AI'en (fra vores arraylist)
@@ -70,9 +71,9 @@ public class GeminiService {
                         String reply = response.getCandidates().get(0).getContent().getParts().get(0).getText();
 
                         // API'ens svar bliver også gemt i vores samtale, men dens key-value par er role: model
-                        conversation.add(Map.of(
-                                "role", "model",
-                                "parts", List.of(Map.of("text", reply))
+                        conversation.add(new GeminiContentDTO(
+                                "model",
+                                List.of(new GeminiContentDTO.Part(reply))
                         ));
 
                         return reply;

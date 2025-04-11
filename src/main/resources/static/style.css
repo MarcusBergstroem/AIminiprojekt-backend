@@ -13,6 +13,10 @@ body {
     align-items: center;
 }
 
+h1{
+    color : white;
+}
+
 #chatBox {
     background-color: transparent;
     width: 90%;
@@ -27,9 +31,10 @@ body {
 
 
 #messages {
-    height: 300px;
+    height: 600px;
     overflow-y: auto;
     margin-bottom: 20px;
+    color: white;
 }
 
 .message {
@@ -38,15 +43,14 @@ body {
 
 .user-message {
     font-weight: bold;
-    color: #2a1a00;
+    color: darkgoldenrod;
 }
 
 .gemini-message {
-    color: black;
 }
 
 #inputField {
-    width: 100%;
+    width: calc(100% - 22px);
     padding: 10px;
     font-size: 1rem;
     border-radius: 10px;
@@ -54,7 +58,7 @@ body {
 }
 
 #sendButton {
-    margin-top: 10px;
+    margin-top: 1em;
     padding: 10px 20px;
     background-color: #7a5c36;
     color: white;
@@ -64,6 +68,39 @@ body {
     cursor: pointer;
 }
 
+.typing-indicator {
+    display: flex;
+    justify-content: center;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
 #sendButton:hover {
     background-color: #a0723b;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    margin: 0 4px;
+    background-color: white;
+    border-radius: 50%;
+    display: inline-block;
+    animation: bounce 1.2s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
 }
